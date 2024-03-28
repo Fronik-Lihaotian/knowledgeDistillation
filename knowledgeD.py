@@ -46,7 +46,7 @@ def main(args):
         ]),
         'val': transforms.Compose([
             transforms.Resize(args.img_size),
-            transforms.CenterCrop(args.img_size),   # keep size as 224*224
+            transforms.CenterCrop(args.img_size),  # keep size as 224*224
             transforms.ToTensor(),
             transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         ])
@@ -106,13 +106,21 @@ def main(args):
             best_acc = acc
             torch.save(teacher_model.state_dict(), args.teacher_path)
 
-        # student stage
+    # student stage
+    student_model = models.Student(num_class=args.num_classes_s).to(device)
+    kd_loss = nn.KLDivLoss()
+    hard_loss = nn.CrossEntropyLoss()
+    optimizer = torch.optim.AdamW(params=teacher_model.parameters(), lr=0.0001)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer)
+    student_best_acc = 0.0
+
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--num_classes', type=int, default=257)
+    parser.add_argument('--num_classes_s', type=int, default=101)
     parser.add_argument('--t_epochs', type=int, default=300)
     parser.add_argument('--s_epochs', type=int, default=120)
     parser.add_argument('--img_size', type=int, default=224)
