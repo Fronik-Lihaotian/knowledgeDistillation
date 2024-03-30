@@ -107,13 +107,75 @@ def main(args):
             torch.save(teacher_model.state_dict(), args.teacher_path)
 
     # student stage
+    student_logger = get_logger('./logfile/explog_student_network_{}epochs_on_{}'.format(args.t_epochs, args.dataset))
     student_model = models.Student(num_class=args.num_classes_s).to(device)
     kd_loss = nn.KLDivLoss()
     hard_loss = nn.CrossEntropyLoss()
-    optimizer = torch.optim.AdamW(params=teacher_model.parameters(), lr=0.0001)
+    student_optimizer = torch.optim.AdamW(params=student_model.parameters(), lr=0.0001)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer)
     student_best_acc = 0.0
+    teacher_model.eval()
+    for epoch in range(args.s_epochs):
+        student_model.train()
+        kd_loss_sum = 0.0
+        hard_loss_sum = 0.0
+        train_bar_student = tqdm(train_loader)
+        for step, data in enumerate(train_bar_student):
+            images, labels = data
+            student_optimizer.zero_grad()
+            out_s = student_model(images.to(device))
+            out_t = teacher_model(images.to(device))
+            hard_loss_value = hard_loss(out_s, labels.to(device))
+            kd_loss_value = kd_loss(F.softmax(out_s / args.kl_tmp), F.softmax(out_t / args.kl_tmp))
+            total_loss = args.kl_alpha * hard_loss_value + (1 - args.kl_alpha) * kd_loss_value
+            total_loss.backward()
+            student_optimizer.step()
+            hard_loss_sum += hard_loss_value
+            kd_loss_sum += kd_loss_value
+            train_bar_student.desc = "student training epoch[{}/{}], loss: {}, kd_loss: {}, hard_loss{}, lr: {}".format(
+                epoch,
+                args.t_epochs,
+                total_loss,
+                kd_loss_value,
+                hard_loss_value,
+                optimizer.param_groups[0]['lr'])
 
+        student_model.eval()
+        student_acc = 0.0
+        with torch.no_grad():
+            val_bar_student = tqdm(val_loader)
+            for val_images_s, val_labels_s in val_bar_student:
+                val_out_s = student_model(val_images_s.to(device))
+                predict_s = torch.max(val_out_s, dim=1)[1]
+                student_acc += torch.eq(predict_s, val_labels_s.to(device)).sum().item()  # item seems more precise
+                val_bar.desc = 'validate epoch[{}/{}]'.format(epoch, args.s_epochs)
+
+        student_acc = student_acc / val_num
+        average_loss = (kd_loss_sum + hard_loss_sum) / train_num
+        avg_hard_loss = hard_loss_sum / train_num
+        avg_kd_loss = kd_loss_sum / train_num
+        print('epoch[{}/{}]: val_acc: {}, avg_loss: {}, avg_kd_loss: {}, avg_hard_loss: {}, lr: {}'.format(epoch,
+                                                                                                           args.s_epochs,
+                                                                                                           student_acc,
+                                                                                                           average_loss,
+                                                                                                           avg_kd_loss,
+                                                                                                           avg_hard_loss,
+                                                                                                           optimizer.param_groups[
+                                                                                                               0][
+                                                                                                               'lr']))
+        student_logger.info('Epoch:[{}/{}]\t loss={:.5f}\t kd_loss: {}\t hard_loss{}\t acc={:.3f}\t lr={:.5f}'.format(
+            epoch,
+            args.t_epochs,
+            average_loss,
+            avg_kd_loss,
+            avg_hard_loss,
+            student_acc,
+            optimizer.param_groups[0][
+                'lr']))
+
+        if student_acc >= student_best_acc:
+            student_best_acc = student_acc
+            torch.save(student_model.state_dict(), args.student_path)
 
 
 if __name__ == '__main__':
@@ -127,6 +189,9 @@ if __name__ == '__main__':
     parser.add_argument('--data_path', type=str, default='E:/学习/去雾/data/dataset')
     parser.add_argument('--dataset', type=str, default='caltech-256')
     parser.add_argument('--teacher_path', type=str, default='./teacher_weights/MobileNetv2.pth')
+    parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets.pth')
+    parser.add_argument('--kl_tmp', type=float, default=5.)
+    parser.add_argument('--kl_alpha', type=float, default=.3)
 
     opt = parser.parse_args()
     main(opt)
