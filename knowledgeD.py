@@ -109,7 +109,7 @@ def main(args):
     # student stage
     student_logger = get_logger('./logfile/explog_student_network_{}epochs_on_{}'.format(args.t_epochs, args.dataset))
     student_model = models.Student(num_class=args.num_classes_s).to(device)
-    kd_loss = nn.KLDivLoss()
+    kd_loss = nn.KLDivLoss(reduction='batchmean')
     hard_loss = nn.CrossEntropyLoss()
     student_optimizer = torch.optim.AdamW(params=student_model.parameters(), lr=0.0001)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer)
@@ -123,10 +123,11 @@ def main(args):
         for step, data in enumerate(train_bar_student):
             images, labels = data
             student_optimizer.zero_grad()
+            with torch.no_grad():
+                out_t = teacher_model(images.to(device))
             out_s = student_model(images.to(device))
-            out_t = teacher_model(images.to(device))
             hard_loss_value = hard_loss(out_s, labels.to(device))
-            kd_loss_value = kd_loss(F.softmax(out_s / args.kl_tmp), F.softmax(out_t / args.kl_tmp))
+            kd_loss_value = kd_loss(F.log_softmax(out_s / args.kl_tmp, dim=1), F.softmax(out_t / args.kl_tmp, dim=1))
             total_loss = args.kl_alpha * hard_loss_value + (1 - args.kl_alpha) * kd_loss_value
             total_loss.backward()
             student_optimizer.step()
@@ -182,7 +183,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--num_classes', type=int, default=257)
-    parser.add_argument('--num_classes_s', type=int, default=101)
+    parser.add_argument('--num_classes_s', type=int, default=257)
     parser.add_argument('--t_epochs', type=int, default=300)
     parser.add_argument('--s_epochs', type=int, default=120)
     parser.add_argument('--img_size', type=int, default=224)
