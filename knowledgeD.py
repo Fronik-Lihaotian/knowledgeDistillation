@@ -84,8 +84,8 @@ def main(args):
     loss = nn.CrossEntropyLoss()
     params = [p for p in teacher_model.teacher.parameters() if p.requires_grad]
     optimizer = torch.optim.AdamW(params=params, lr=0.0001)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=34560, T_mult=2, eta_min=0.000009,
-                                                                     last_epoch=-1)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=34560, T_mult=2, eta_min=0.000009,
+    #                                                                  last_epoch=-1)
     best_acc = 0
     for epoch in range(args.t_epochs):
         loss_sum = 0.0
@@ -98,7 +98,7 @@ def main(args):
             loss_value = loss(logits, labels.to(device))
             loss_value.backward()
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
             loss_sum += loss_value.item()
             train_bar.desc = "training epoch[{}/{}], loss: {:.5f}, lr: {}".format(epoch + 1, args.t_epochs,
                                                                                   loss_value,
@@ -212,17 +212,17 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--num_classes', type=int, default=257)
     parser.add_argument('--num_classes_s', type=int, default=101)
-    parser.add_argument('--t_epochs', type=int, default=300)
+    parser.add_argument('--t_epochs', type=int, default=30)
     parser.add_argument('--s_epochs', type=int, default=120)
     parser.add_argument('--img_size', type=int, default=224)
     parser.add_argument('--data_path', type=str, default='E:/学习/去雾/data/dataset')
-    parser.add_argument('--dataset', type=str, default='caltech-256')
+    parser.add_argument('--dataset', type=str, default='caltech-101')
     parser.add_argument('--pretrained_teacher_path', type=str, default='./teacher_weights/MobileNetv2.pth')
     parser.add_argument('--fine_tuned_teacher_path', type=str, default='./teacher_weights/MobileNetv2_fine_tuned.pth')
     parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets.pth')
     parser.add_argument('--kl_tmp', type=float, default=5.)
     parser.add_argument('--kl_alpha', type=float, default=.3)
-    parser.add_argument('--fine_tuning', type=bool, default=False)
+    parser.add_argument('--fine_tuning', type=bool, default=True)
 
     opt = parser.parse_args()
     main(opt)
