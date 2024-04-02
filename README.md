@@ -5,7 +5,7 @@ KD implementation practice by pytorch
 ## Teacher Network pre-training
 
 I use **MobileNetv2** as the teacher network in this project, network architecture followed pytorch official 
-implementation. In pre-training stage, I trained MobileNetv2 on **Caltech 256** dataset for 300 epochs to 
+implementation. In pre-training stage, I trained MobileNetv2 on **Caltech 256** dataset for **300** epochs to 
 get a well-generalizaed backbone. The pre-training results is shown below：
 
 |Network|Dataset|Classes num|Top-1 Accuracy|
