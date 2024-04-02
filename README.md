@@ -69,7 +69,7 @@ Here I use the medium size of modified MobileNetV2, called MobileNets-M, as the 
 the `expansion_rate = 4`. Kullback-Leibler divergence is applied to provide distillation loss, the loss function 
 can be discribed as:
 
-$$D_KL(P_t||P_s) = -\sum (P_t\log P_s-P_t\log P_t),$$
+$$D_{KL}(P_t||P_s) = -\sum (P_t\log P_s-P_t\log P_t),$$
 
 where $P_t$ and $P_s$ individually represent the distributions from teacher network and student network. 
 The temperature parameter equals to **5.0** in here. 
@@ -101,3 +101,21 @@ Data Agumentation:
 - RandomHorizontalFlip
 - RandAugment
 - RandomErasing
+
+## Comparison Group
+
+### With & without knowledge distillation 
+
+TBD
+
+### Influence of LR scheduler in student stage
+
+TBD
+
+### Influence of Data Augmentation
+
+TBD
+
+### \alpha & temperature 
+
+TBD
