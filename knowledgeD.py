@@ -84,7 +84,8 @@ def main(args):
     loss = nn.CrossEntropyLoss()
     params = [p for p in teacher_model.teacher.parameters() if p.requires_grad]
     optimizer = torch.optim.AdamW(params=params, lr=0.0001)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=34560, T_mult=2, eta_min=0.000009,
+                                                                     last_epoch=-1)
     best_acc = 0
     for epoch in range(args.t_epochs):
         loss_sum = 0.0
@@ -97,10 +98,11 @@ def main(args):
             loss_value = loss(logits, labels.to(device))
             loss_value.backward()
             optimizer.step()
+            scheduler.step()
             loss_sum += loss_value.item()
-            train_bar.desc = "training epoch[{}/{}], loss: {:.5f}, lr: {:.5f}".format(epoch + 1, args.t_epochs,
-                                                                                      loss_value,
-                                                                                      optimizer.param_groups[0]['lr'])
+            train_bar.desc = "training epoch[{}/{}], loss: {:.5f}, lr: {}".format(epoch + 1, args.t_epochs,
+                                                                                  loss_value,
+                                                                                  optimizer.param_groups[0]['lr'])
         teacher_model.teacher.eval()
         acc = 0.0
         with torch.no_grad():
@@ -114,9 +116,9 @@ def main(args):
 
         acc = acc / val_num
         average_loss = loss_sum / train_num
-        print('epoch[{}/{}]: val_acc: {:.3f}, average_loss: {:.5f}, lr: {:.5f}'.format(epoch + 1, args.t_epochs, acc,
-                                                                                       average_loss,
-                                                                                       optimizer.param_groups[0]['lr']))
+        print('epoch[{}/{}]: val_acc: {:.3f}, average_loss: {:.5f}, lr: {}'.format(epoch + 1, args.t_epochs, acc,
+                                                                                   average_loss,
+                                                                                   optimizer.param_groups[0]['lr']))
         teacher_logger.info('Epoch:[{}/{}]\t loss={:.5f}\t acc={:.3f}\t lr={:.5f}'.format(epoch + 1, args.t_epochs,
                                                                                           average_loss,
                                                                                           acc,
@@ -220,7 +222,7 @@ if __name__ == '__main__':
     parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets.pth')
     parser.add_argument('--kl_tmp', type=float, default=5.)
     parser.add_argument('--kl_alpha', type=float, default=.3)
-    parser.add_argument('--fine_tuning', type=bool, default=True)
+    parser.add_argument('--fine_tuning', type=bool, default=False)
 
     opt = parser.parse_args()
     main(opt)
