@@ -4,9 +4,9 @@ KD implementation practice by pytorch
 
 ## Teacher Network pre-training
 
-I use **MobileNetv2** as the teacher network in this project, network architecture followed pytorch official 
-implementation. In pre-training stage, I trained MobileNetv2 on **Caltech 256** dataset for **300** epochs to 
-get a well-generalizaed backbone. The pre-training results are shown below：
+I use **MobileNetv2** as the teacher network in this project, network architecture is copied from [here](https://github.com/WZMIAOMIAO/deep-learning-for-image-processing/blob/master/pytorch_classification/Test6_mobilenet/model_v2.py), thanks! 
+In pre-training stage, I trained MobileNetv2 on **Caltech 256** dataset for **300** epochs to get a 
+well-generalizaed backbone. The pre-training results are shown below：
 
 |Network|Dataset|Classes num|Top-1 Accuracy|
 |:-----:|:-----:|:-----:|:-----:|
@@ -35,7 +35,7 @@ block) as the student network, which is designed based on my personal MSc final 
 Birmingham. The entire stage will be: 
 
 1. Fine tuning the teacher network based on the backbone gained from above stage. 
-2. Training student model with knowledge distillation.
+2. Training student model with knowledge distillation. 
 
 ### Fine tuning teacher model
 
@@ -111,7 +111,7 @@ with the student stage. The comparison is shown below:
 
 |Network|Dataset|Classes num|Epochs|Top-1 Accuracy|with KD|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
-|MobileNets-M|Caltech-101|101|120|**84.5%**|&#10004;|
+|MobileNets-M|Caltech-101|101|120|**84.5%**|&#10003;|
 |MobileNets-M|Caltech-101|101|120|82.8%|&#10008;|
 
 Clearly, without the distillation, the top-1 accuracy is 1.7% lower than with distillation, which showed the 
@@ -128,3 +128,8 @@ TBD
 ### \alpha & temperature 
 
 TBD
+
+## Acknowledgement
+
+The code is written with reference to this [repository](https://github.com/WZMIAOMIAO/deep-learning-for-image-processing/tree/master/pytorch_classification/Test6_mobilenet). 
+And I also learned a lot from this [blog](https://blog.csdn.net/weixin_44911037/article/details/123134947). Many thanks!
