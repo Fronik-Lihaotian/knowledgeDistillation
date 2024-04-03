@@ -125,11 +125,12 @@ to explore the performance difference between with and without LR scheduler.
 I firstly add the cosine lr scheduler in the student training procedure, the scheduler can be described as: 
 
 $$factor = (1 + \cos(iteration * \pi / (epochs * iterations))) / 2) \cdot (1 - 0.1) + 0.1$$
+
 $$lr = lr_{initial}*factor$$
 
 The change of factor is shown in the picture below (epochs = 120, range: 1-0.1):
 
-![lr_scheduler](.\\imgs\\lr_scheduler.png)
+![lr_scheduler](https://github.com/Fronik-Lihaotian/knowledgeDistillation/blob/main/imgs/lr_scheduler.png?raw=true)
 
 The results are shown below:
 
