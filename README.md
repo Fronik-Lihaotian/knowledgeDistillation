@@ -117,9 +117,32 @@ with the student stage. The comparison is shown below:
 Clearly, without the distillation, the top-1 accuracy is 1.7% lower than with distillation, which showed the 
 effectiveness of knowledge distillation. 
 
-### Influence of LR scheduler in student stage
+### Influence of LR scheduler
 
-TBD
+In here, I mainly discuss the impact from *learning rate scheduler*, I'm planing to make a series of experiments
+to explore the performance difference between with and without LR scheduler.
+
+I firstly add the cosine lr scheduler in the student training procedure, the scheduler can be described as: 
+
+$$factor = (1 + \cos(iteration * \pi / (epochs * iterations))) / 2) \cdot (1 - 0.1) + 0.1$$
+$$lr = lr_{initial}*factor$$
+
+The change of factor is shown in the picture below (epochs = 120, range: 1-0.1):
+
+![lr_scheduler](.\\imgs\\lr_scheduler.png)
+
+The results are shown below:
+
+|Network|Dataset|Top-1 Accuracy|with KD|with scheduler|initial lr|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+|MobileNets-M|Caltech-101|**84.5%**|&#10003;|&#10008;|0.0001|
+|MobileNets-M|Caltech-101|82.8%|&#10008;|&#10008;|0.0001|
+|MobileNets-M|Caltech-101|TBD|&#10003;|&#10003;|0.0001|
+|MobileNets-M|Caltech-101|79.9%|&#10008;|&#10003;|0.0001|
+|MobileNets-M|Caltech-101|TBD|&#10003;|&#10008;|0.0002|
+|MobileNets-M|Caltech-101|TBD|&#10008;|&#10008;|0.0002|
+|MobileNets-M|Caltech-101|TBD|&#10003;|&#10003;|0.0002|
+|MobileNets-M|Caltech-101|TBD|&#10008;|&#10003;|0.0002|
 
 ### Influence of Data Augmentation
 

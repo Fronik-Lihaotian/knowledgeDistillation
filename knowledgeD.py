@@ -1,5 +1,6 @@
 import os
 import torch
+import math
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
@@ -68,12 +69,17 @@ def main(args):
     if os.path.exists(args.pretrained_teacher_path) and args.fine_tuning:
         teacher_path = args.fine_tuned_teacher_path
         teacher_model = models.Teacher(num_class=args.num_classes_s)
-        teacher_weights_load = torch.load(args.pretrained_teacher_path, map_location=device)
-        load_weights_dict = {layer_name: layer_value for layer_name, layer_value in teacher_weights_load.items()
-                             if teacher_model.teacher.state_dict()[layer_name].numel() == layer_value.numel()}
-        teacher_model.teacher.load_state_dict(load_weights_dict, strict=False)
-        for param in teacher_model.teacher.features.parameters():
-            param.requires_grad_(False)
+        if os.path.exists(args.fine_tuned_teacher_path):
+            teacher_model.teacher.load_state_dict(torch.load(args.fine_tuned_teacher_path, map_location=device))
+            for name, parameters in teacher_model.teacher.named_parameters():
+                parameters.requires_grad(False)
+        else:
+            teacher_weights_load = torch.load(args.pretrained_teacher_path, map_location=device)
+            load_weights_dict = {layer_name: layer_value for layer_name, layer_value in teacher_weights_load.items()
+                                 if teacher_model.teacher.state_dict()[layer_name].numel() == layer_value.numel()}
+            teacher_model.teacher.load_state_dict(load_weights_dict, strict=False)
+            for param in teacher_model.teacher.features.parameters():
+                param.requires_grad_(False)
         print("Pre-trained teacher model loaded!")
     else:
         teacher_path = args.pretrained_teacher_path
@@ -81,53 +87,57 @@ def main(args):
         print("There isn't any pre-trained teacher model, training from scratch")
     teacher_model.teacher.to(device)
 
-    loss = nn.CrossEntropyLoss()
-    params = [p for p in teacher_model.teacher.parameters() if p.requires_grad]
-    optimizer = torch.optim.AdamW(params=params, lr=0.0001)
-    # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=34560, T_mult=2, eta_min=0.000009,
-    #                                                                  last_epoch=-1)
-    best_acc = 0
-    for epoch in range(args.t_epochs):
-        loss_sum = 0.0
-        teacher_model.teacher.train()
-        train_bar = tqdm(train_loader)
-        for step, data in enumerate(train_bar):
-            images, labels = data
-            optimizer.zero_grad()
-            logits = teacher_model.teacher(images.to(device))
-            loss_value = loss(logits, labels.to(device))
-            loss_value.backward()
-            optimizer.step()
-            # scheduler.step()
-            loss_sum += loss_value.item()
-            train_bar.desc = "training epoch[{}/{}], loss: {:.5f}, lr: {}".format(epoch + 1, args.t_epochs,
-                                                                                  loss_value,
-                                                                                  optimizer.param_groups[0]['lr'])
-        teacher_model.teacher.eval()
-        acc = 0.0
-        with torch.no_grad():
-            val_bar = tqdm(val_loader)
-            for val_data in val_bar:
-                val_images, val_labels = val_data
-                val_logits = teacher_model.teacher(val_images.to(device))
-                predict = torch.max(val_logits, dim=1)[1]  # torch.max()[1] returns the index of max value in tensor
-                acc += torch.eq(predict, val_labels.to(device)).sum().item()  # item seems more precise
-                val_bar.desc = 'validate epoch[{}/{}]'.format(epoch + 1, args.t_epochs)
+    if not (os.path.exists(args.fine_tuned_teacher_path)):  # teacher network training
+        loss = nn.CrossEntropyLoss()
+        params = [p for p in teacher_model.teacher.parameters() if p.requires_grad]
+        optimizer = torch.optim.AdamW(params=params, lr=0.0001)
+        # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=34560, T_mult=2, eta_min=0.000009,
+        #                                                                  last_epoch=-1)
+        best_acc = 0
+        for epoch in range(args.t_epochs):
+            loss_sum = 0.0
+            teacher_model.teacher.train()
+            train_bar = tqdm(train_loader)
+            for step, data in enumerate(train_bar):
+                images, labels = data
+                optimizer.zero_grad()
+                logits = teacher_model.teacher(images.to(device))
+                loss_value = loss(logits, labels.to(device))
+                loss_value.backward()
+                optimizer.step()
+                # scheduler.step()
+                loss_sum += loss_value.item()
+                train_bar.desc = "training epoch[{}/{}], loss: {:.5f}, lr: {}".format(epoch + 1, args.t_epochs,
+                                                                                      loss_value,
+                                                                                      optimizer.param_groups[0]['lr'])
+            teacher_model.teacher.eval()
+            acc = 0.0
+            with torch.no_grad():
+                val_bar = tqdm(val_loader)
+                for val_data in val_bar:
+                    val_images, val_labels = val_data
+                    val_logits = teacher_model.teacher(val_images.to(device))
+                    predict = torch.max(val_logits, dim=1)[1]  # torch.max()[1] returns the index of max value in tensor
+                    acc += torch.eq(predict, val_labels.to(device)).sum().item()  # item seems more precise
+                    val_bar.desc = 'validate epoch[{}/{}]'.format(epoch + 1, args.t_epochs)
 
-        acc = acc / val_num
-        average_loss = loss_sum / train_num
-        print('epoch[{}/{}]: val_acc: {:.3f}, average_loss: {:.5f}, lr: {}'.format(epoch + 1, args.t_epochs, acc,
-                                                                                   average_loss,
-                                                                                   optimizer.param_groups[0]['lr']))
-        teacher_logger.info('Epoch:[{}/{}]\t loss={:.5f}\t acc={:.3f}\t lr={:.5f}'.format(epoch + 1, args.t_epochs,
-                                                                                          average_loss,
-                                                                                          acc,
-                                                                                          optimizer.param_groups[0][
-                                                                                              'lr']))
-        if acc >= best_acc:
-            best_acc = acc
-            torch.save(teacher_model.teacher.state_dict(), teacher_path)
-    print("Teacher stage finished! best acc: {:.3f}".format(best_acc))
+            acc = acc / val_num
+            average_loss = loss_sum / train_num
+            print('epoch[{}/{}]: val_acc: {:.3f}, average_loss: {:.5f}, lr: {}'.format(epoch + 1, args.t_epochs, acc,
+                                                                                       average_loss,
+                                                                                       optimizer.param_groups[0]['lr']))
+            teacher_logger.info('Epoch:[{}/{}]\t loss={:.5f}\t acc={:.3f}\t lr={:.5f}'.format(epoch + 1, args.t_epochs,
+                                                                                              average_loss,
+                                                                                              acc,
+                                                                                              optimizer.param_groups[0][
+                                                                                                  'lr']))
+            if acc >= best_acc:
+                best_acc = acc
+                torch.save(teacher_model.teacher.state_dict(), teacher_path)
+        print("Teacher stage finished! best acc: {:.3f}".format(best_acc))
+    else:
+        print('fine-tuned teacher model exist, loaded directly.')
+
     # student stage
     if args.fine_tuning:
         student_logger = get_logger(
@@ -135,8 +145,9 @@ def main(args):
         student_model = models.Student(num_class=args.num_classes_s).to(device)
         kd_loss = nn.KLDivLoss(reduction='batchmean')
         hard_loss = nn.CrossEntropyLoss()
-        student_optimizer = torch.optim.AdamW(params=student_model.student.parameters(), lr=0.0001)
-        # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer)
+        student_optimizer = torch.optim.AdamW(params=student_model.student.parameters(), lr=0.0002)
+        lf = lambda x: ((1 + math.cos(x * math.pi / (args.s_epochs * 492))) / 2) * (1 - 0.1) + 0.1
+        scheduler = torch.optim.lr_scheduler.LambdaLR(student_optimizer, lr_lambda=lf)
         student_best_acc = 0.0
         teacher_model.teacher.eval()
         for epoch in range(args.s_epochs):
@@ -156,17 +167,18 @@ def main(args):
                 total_loss = args.kl_alpha * hard_loss_value + (1 - args.kl_alpha) * kd_loss_value
                 total_loss.backward()
                 student_optimizer.step()
+                scheduler.step()
                 hard_loss_sum += hard_loss_value
                 kd_loss_sum += kd_loss_value
                 train_bar_student.desc = ('student training epoch[{}/{}], loss: {:.5f},' +
-                                          ' kd_loss: {:.5f}, hard_loss{:.5f}, lr: {:.5f}').format(epoch + 1,
-                                                                                                  args.t_epochs,
-                                                                                                  total_loss,
-                                                                                                  kd_loss_value,
-                                                                                                  hard_loss_value,
-                                                                                                  optimizer.param_groups[
-                                                                                                      0][
-                                                                                                      'lr'])
+                                          ' kd_loss: {:.5f}, hard_loss: {:.5f}, lr: {:.5f}').format(epoch + 1,
+                                                                                                    args.t_epochs,
+                                                                                                    total_loss,
+                                                                                                    kd_loss_value,
+                                                                                                    hard_loss_value,
+                                                                                                    student_optimizer.
+                                                                                                    param_groups[0][
+                                                                                                        'lr'])
 
             student_model.student.eval()
             student_acc = 0.0
@@ -189,17 +201,17 @@ def main(args):
                                                                                      average_loss,
                                                                                      avg_kd_loss,
                                                                                      avg_hard_loss,
-                                                                                     optimizer.param_groups[
-                                                                                         0]['lr']))
+                                                                                     student_optimizer.param_groups[0]
+                                                                                     ['lr']))
             student_logger.info(
-                'Epoch:[{}/{}]\t loss={:.5f}\t kd_loss: {:.5f}\t hard_loss{:.5f}\t acc={:.3f}\t lr={:.5f}'.format(
+                'Epoch:[{}/{}]\t loss={:.5f}\t kd_loss: {:.5f}\t hard_loss: {:.5f}\t acc={:.3f}\t lr={:.5f}'.format(
                     epoch + 1,
                     args.t_epochs,
                     average_loss,
                     avg_kd_loss,
                     avg_hard_loss,
                     student_acc,
-                    optimizer.param_groups[0]['lr']))
+                    student_optimizer.param_groups[0]['lr']))
 
             if student_acc >= student_best_acc:
                 student_best_acc = student_acc
