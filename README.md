@@ -130,7 +130,7 @@ $$lr = lr_{initial}*factor$$
 
 The change of factor is shown in the picture below (epochs = 120, range: 1-0.1):
 
-![lr_scheduler](https://github.com/Fronik-Lihaotian/knowledgeDistillation/blob/main/imgs/lr_scheduler.png?raw=true){:height="30%" width="70%"}
+<img src="https://github.com/Fronik-Lihaotian/knowledgeDistillation/blob/main/imgs/lr_scheduler.png"height="30%" width="50%">
 
 The results are shown below:
 
