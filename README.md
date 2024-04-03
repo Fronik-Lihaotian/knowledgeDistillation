@@ -106,7 +106,16 @@ Data Agumentation:
 
 ### With & without knowledge distillation 
 
-TBD
+I compared the performance difference between with and without distillation, the training recipe is same 
+with the student stage. The comparison is shown below:
+
+|Network|Dataset|Classes num|Epochs|Top-1 Accuracy|with KD|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+|MobileNets-M|Caltech-101|101|120|**84.5%**|&#10004|
+|MobileNets-M|Caltech-101|101|120|82.8%|&#10008|
+
+Clearly, without the distillation, the top-1 accuracy is 1.7% lower than with distillation, which showed the 
+effectiveness of knowledge distillation. 
 
 ### Influence of LR scheduler in student stage
 
