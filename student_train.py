@@ -61,13 +61,14 @@ def main(args):
     nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])
     train_loader = DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=nw)
     val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=nw)
-    student_logger = get_logger('./logfile/explog_student_network_{}epochs_on_{}_without_KD_with_lr_schedule'.format(args.s_epochs,
-                                                                                                    args.dataset))
+    student_logger = get_logger(
+        './logfile/explog_student_network_{}epochs_on_{}_without_KD_lr0.0002_no_schedule.log'.format(args.s_epochs,
+                                                                                                       args.dataset))
     student_model = models.Student(num_class=args.num_classes).to(device)
     loss = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(params=student_model.student.parameters(), lr=0.0002)
-    lf = lambda x: ((1 + math.cos(x * math.pi / (args.s_epochs * 492))) / 2) * (1 - 0.1) + 0.1
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
+    # lf = lambda x: ((1 + math.cos(x * math.pi / (args.s_epochs * 492))) / 2) * (1 - 0.1) + 0.1
+    # scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
     student_best_acc = 0.0
     for epoch in range(args.s_epochs):
         student_model.student.train()
@@ -80,7 +81,7 @@ def main(args):
             train_loss = loss(out, labels.to(device))
             train_loss.backward()
             optimizer.step()
-            scheduler.step()
+            # scheduler.step()
             loss_sum += train_loss
             train_bar.desc = "training epoch[{}/{}], loss: {:.5f}, lr: {}".format(epoch + 1, args.s_epochs,
                                                                                   train_loss,
@@ -121,7 +122,8 @@ if __name__ == '__main__':
     parser.add_argument('--img_size', type=int, default=224)
     parser.add_argument('--data_path', type=str, default='E:/学习/去雾/data/dataset')
     parser.add_argument('--dataset', type=str, default='caltech-101')
-    parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets_withoutKD_Lr_schedule.pth')
+    parser.add_argument('--student_path', type=str,
+                        default='./student_weights/MobileNets_withoutKD_Lr0.0002_no_schedule.pth')
 
     opt = parser.parse_args()
     main(opt)

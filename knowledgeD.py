@@ -74,7 +74,7 @@ def main(args):
             print("Fine-tuned teacher model loaded!")
         else:
             teacher_logger = get_logger(
-                './logfile/explog_teacher_network_{}epochs_on_{}'.format(args.t_epochs, args.dataset))
+                './logfile/explog_teacher_network_{}epochs_on_{}.log'.format(args.t_epochs, args.dataset))
             teacher_weights_load = torch.load(args.pretrained_teacher_path, map_location=device)
             load_weights_dict = {layer_name: layer_value for layer_name, layer_value in teacher_weights_load.items()
                                  if teacher_model.teacher.state_dict()[layer_name].numel() == layer_value.numel()}
@@ -142,13 +142,13 @@ def main(args):
     # student stage
     if args.fine_tuning:
         student_logger = get_logger(
-            './logfile/explog_student_network_{}epochs_on_{}_with_scheduler_lr0.0001'.format(args.s_epochs, args.dataset))
+            './logfile/explog_student_network_{}epochs_on_{}_without_scheduler_lr0.0002.log'.format(args.s_epochs, args.dataset))
         student_model = models.Student(num_class=args.num_classes_s).to(device)
         kd_loss = nn.KLDivLoss(reduction='batchmean')
         hard_loss = nn.CrossEntropyLoss()
-        student_optimizer = torch.optim.AdamW(params=student_model.student.parameters(), lr=0.0001)
-        lf = lambda x: ((1 + math.cos(x * math.pi / (args.s_epochs * 492))) / 2) * (1 - 0.1) + 0.1
-        scheduler = torch.optim.lr_scheduler.LambdaLR(student_optimizer, lr_lambda=lf)
+        student_optimizer = torch.optim.AdamW(params=student_model.student.parameters(), lr=args.lr)
+        # lf = lambda x: ((1 + math.cos(x * math.pi / (args.s_epochs * 492))) / 2) * (1 - 0.1) + 0.1
+        # scheduler = torch.optim.lr_scheduler.LambdaLR(student_optimizer, lr_lambda=lf)
         student_best_acc = 0.0
         teacher_model.teacher.eval()
         for epoch in range(args.s_epochs):
@@ -168,7 +168,7 @@ def main(args):
                 total_loss = args.kl_alpha * hard_loss_value + (1 - args.kl_alpha) * kd_loss_value
                 total_loss.backward()
                 student_optimizer.step()
-                scheduler.step()
+                # scheduler.step()
                 hard_loss_sum += hard_loss_value
                 kd_loss_sum += kd_loss_value
                 train_bar_student.desc = ('student training epoch[{}/{}], loss: {:.5f},' +
@@ -232,10 +232,11 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='caltech-101')
     parser.add_argument('--pretrained_teacher_path', type=str, default='./teacher_weights/MobileNetv2.pth')
     parser.add_argument('--fine_tuned_teacher_path', type=str, default='./teacher_weights/MobileNetv2_fine_tuned.pth')
-    parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets_with_scheduler_lr0.0001.pth')
+    parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets_no_scheduler_lr0.0002.pth')
     parser.add_argument('--kl_tmp', type=float, default=5.)
     parser.add_argument('--kl_alpha', type=float, default=.3)
     parser.add_argument('--fine_tuning', type=bool, default=True)
+    parser.add_argument('--lr', type=float, default=0.0002)
 
     opt = parser.parse_args()
     main(opt)
