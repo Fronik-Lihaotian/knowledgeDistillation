@@ -144,7 +144,7 @@ The results are shown below:
 |MobileNets-M|Caltech-101|79.9%|&#10008;|&#10003;|0.0001|
 |MobileNets-M|Caltech-101|TBD|&#10003;|&#10008;|0.0002|
 |MobileNets-M|Caltech-101|TBD|&#10008;|&#10008;|0.0002|
-|MobileNets-M|Caltech-101|TBD|&#10003;|&#10003;|0.0002|
+|MobileNets-M|Caltech-101|**85.7%**|&#10003;|&#10003;|0.0002|
 |MobileNets-M|Caltech-101|TBD|&#10008;|&#10003;|0.0002|
 
 ### Influence of Data Augmentation

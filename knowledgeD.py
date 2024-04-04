@@ -63,24 +63,25 @@ def main(args):
     val_loader = DataLoader(dataset=val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=nw)
 
     # teacher training
-    teacher_logger = get_logger('./logfile/explog_teacher_network_{}epochs_on_{}'.format(args.t_epochs, args.dataset))
-
     # load pretrained teacher network and freeze para if exist
     if os.path.exists(args.pretrained_teacher_path) and args.fine_tuning:
         teacher_path = args.fine_tuned_teacher_path
         teacher_model = models.Teacher(num_class=args.num_classes_s)
         if os.path.exists(args.fine_tuned_teacher_path):
             teacher_model.teacher.load_state_dict(torch.load(args.fine_tuned_teacher_path, map_location=device))
-            for name, parameters in teacher_model.teacher.named_parameters():
-                parameters.requires_grad(False)
+            for name, param in teacher_model.teacher.named_parameters():
+                param.requires_grad_(False)
+            print("Fine-tuned teacher model loaded!")
         else:
+            teacher_logger = get_logger(
+                './logfile/explog_teacher_network_{}epochs_on_{}'.format(args.t_epochs, args.dataset))
             teacher_weights_load = torch.load(args.pretrained_teacher_path, map_location=device)
             load_weights_dict = {layer_name: layer_value for layer_name, layer_value in teacher_weights_load.items()
                                  if teacher_model.teacher.state_dict()[layer_name].numel() == layer_value.numel()}
             teacher_model.teacher.load_state_dict(load_weights_dict, strict=False)
             for param in teacher_model.teacher.features.parameters():
                 param.requires_grad_(False)
-        print("Pre-trained teacher model loaded!")
+            print("Pre-trained teacher model loaded!")
     else:
         teacher_path = args.pretrained_teacher_path
         teacher_model = models.Teacher(num_class=args.num_classes)
@@ -141,11 +142,11 @@ def main(args):
     # student stage
     if args.fine_tuning:
         student_logger = get_logger(
-            './logfile/explog_student_network_{}epochs_on_{}'.format(args.s_epochs, args.dataset))
+            './logfile/explog_student_network_{}epochs_on_{}_with_scheduler_lr0.0001'.format(args.s_epochs, args.dataset))
         student_model = models.Student(num_class=args.num_classes_s).to(device)
         kd_loss = nn.KLDivLoss(reduction='batchmean')
         hard_loss = nn.CrossEntropyLoss()
-        student_optimizer = torch.optim.AdamW(params=student_model.student.parameters(), lr=0.0002)
+        student_optimizer = torch.optim.AdamW(params=student_model.student.parameters(), lr=0.0001)
         lf = lambda x: ((1 + math.cos(x * math.pi / (args.s_epochs * 492))) / 2) * (1 - 0.1) + 0.1
         scheduler = torch.optim.lr_scheduler.LambdaLR(student_optimizer, lr_lambda=lf)
         student_best_acc = 0.0
@@ -188,7 +189,7 @@ def main(args):
                     val_out_s = student_model.student(val_images_s.to(device))
                     predict_s = torch.max(val_out_s, dim=1)[1]
                     student_acc += torch.eq(predict_s, val_labels_s.to(device)).sum().item()  # item seems more precise
-                    val_bar.desc = 'validate epoch[{}/{}]'.format(epoch + 1, args.s_epochs)
+                    val_bar_student.desc = 'validate epoch[{}/{}]'.format(epoch + 1, args.s_epochs)
 
             student_acc = student_acc / val_num
             average_loss = (kd_loss_sum + hard_loss_sum) / train_num
@@ -231,7 +232,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='caltech-101')
     parser.add_argument('--pretrained_teacher_path', type=str, default='./teacher_weights/MobileNetv2.pth')
     parser.add_argument('--fine_tuned_teacher_path', type=str, default='./teacher_weights/MobileNetv2_fine_tuned.pth')
-    parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets.pth')
+    parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets_with_scheduler_lr0.0001.pth')
     parser.add_argument('--kl_tmp', type=float, default=5.)
     parser.add_argument('--kl_alpha', type=float, default=.3)
     parser.add_argument('--fine_tuning', type=bool, default=True)
