@@ -147,6 +147,8 @@ The results are shown below:
 |MobileNets-M|Caltech-101|85.7%|&#10003;|&#10003;|0.0002|
 |MobileNets-M|Caltech-101|84.6%|&#10008;|&#10003;|0.0002|
 
+From the results, applying cosine LR scheduler cannot improve the performance of network. 
+
 ### Influence of Data Augmentation
 
 TBD
