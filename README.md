@@ -90,6 +90,8 @@ Learning methods:
 - LR Scheduler: None
 - Training Epochs: 120
 - Loss: Cross-Entropy + KL Divergence 
+- Temperature: 5.0
+- $\alpha$: 0.3
 
 Data Augmentation:
 - RandomResizedCrop
@@ -176,5 +178,5 @@ TBD
 
 ## Acknowledgment
 
-The code is written regarding this [repository](https://github.com/WZMIAOMIAO/deep-learning-for-image-processing/tree/master/pytorch_classification/Test6_mobilenet)](https://github.com/WZMIAOMIAO/deep-learning-for-image-processing/tree/master/pytorch_classification/Test6_mobilenet). 
+The code is written regarding this [repository](https://github.com/WZMIAOMIAO/deep-learning-for-image-processing/tree/master/pytorch_classification/Test6_mobilenet). 
 And I also learned a lot from this [blog](https://blog.csdn.net/weixin_44911037/article/details/123134947). Many thanks!
