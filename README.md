@@ -165,12 +165,14 @@ From the results of the experiments above, it's obvious that the performance wil
 
 |Network|Dataset|Top-1 Accuracy|epochs|temperature|
 |:-----:|:-----:|:-----:|:-----:|:-----:|
-|MobileNets-M|Caltech-101|TBD|120|10.0|
-|MobileNets-M|Caltech-101|TBD|120|7.0|
+|MobileNets-M|Caltech-101|86.1%|120|10.0|
+|MobileNets-M|Caltech-101|86.3%|120|7.0|
 |MobileNets-M|Caltech-101|86.5%|120|5.0|
 |MobileNets-M|Caltech-101|**87.6%**|120|3.0|
 |MobileNets-M|Caltech-101|85.5%|120|1.0|
-|MobileNets-M|Caltech-101|TBD|120|0.5|
+|MobileNets-M|Caltech-101|84.3%|120|0.5|
+
+From the results, the highest top-1 accuracy reached 87.6% when temperature equals 3. 
 
 #### $\alpha$ hyperparameter: 
 
