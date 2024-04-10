@@ -103,7 +103,7 @@ Data Augmentation:
 
 ### With & without KnowledgeDistillation 
 
-I compared the performance difference between with and without distillation, the training recipe is the same with the student stage. The comparison is shown below:
+I compared the performance difference between with and without distillation, the training recipe is the same as the student stage. The comparison is shown below:
 
 |Network|Dataset|Classes num|Epochs|Top-1 Accuracy|with KD|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
@@ -180,12 +180,13 @@ Here, I mainly discuss the impact of the parameter $\alpha$, from the formula be
 
 $$ Loss_{total} = \alpha Loss_{hard} + (1- \alpha) Loss_{soft},$$
 
-In the previous experiments, the $\alpha$ equals 0.3, but is this the best setting? and how much performance difference can be made by changing the $\alpha$. I fixed the temperature as 3.0 since it's got the best results, and everything else keeps the same. The results are shown below:
+In the previous experiments, the $\alpha$ equals 0.3, but is this the best setting? and how much performance difference can be made by changing the $\alpha$. I fixed the temperature as 3.0 since it's got the best results, and everything else remains the same. The results are shown below:
 
 |Network|Dataset|Top-1 Accuracy|$\alpha$|
 |:-----:|:-----:|:-----:|:-----:|
 |MobileNets-M|Caltech-101|86.2%|0.5|
 |MobileNets-M|Caltech-101|**87.6%**|0.3|
+|MobileNets-M|Caltech-101|86.2%|0|
 
 
 ## Acknowledgment
