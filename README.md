@@ -176,7 +176,17 @@ From the results, the highest top-1 accuracy reached 87.6% when temperature equa
 
 #### $\alpha$ hyperparameter: 
 
-TBD
+Here, I mainly discuss the impact of the parameter $\alpha$, from the formula below, the $\alpha$ is used to control the weights of KD loss compared and Cross-Entropy loss.
+
+$$ Loss_{total} = \alpha Loss_{hard} + (1- \alpha) Loss_{soft},$$
+
+In the previous experiments, the $\alpha$ equals 0.3, but is this the best setting? and how much performance difference can be made by changing the $\alpha$. I fixed the temperature as 3.0 since it's got the best results, and everything else keeps the same. The results are shown below:
+
+|Network|Dataset|Top-1 Accuracy|$\alpha$|
+|:-----:|:-----:|:-----:|:-----:|
+|MobileNets-M|Caltech-101|86.2%|0.5|
+|MobileNets-M|Caltech-101|**87.6%**|0.3|
+
 
 ## Acknowledgment
 
