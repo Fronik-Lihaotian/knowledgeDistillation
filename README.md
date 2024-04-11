@@ -4,7 +4,7 @@ KD implementation practice based on PyTorch
 
 ## Teacher Network pre-training
 
-I use **MobileNetv2** as the teacher network in this project, network architecture is copied from [here](https://github.com/WZMIAOMIAO/deep-learning-for-image-processing/blob/master/pytorch_classification/Test6_mobilenet/model_v2.py), thanks! In the pre-training stage, I trained MobileNetv2 on the **Caltech**** 256** dataset for **300** epochs to get a well-generalized backbone. The pre-training results are shown below：
+I use **MobileNetv2** as the teacher network in this project, network architecture is copied from [here](https://github.com/WZMIAOMIAO/deep-learning-for-image-processing/blob/master/pytorch_classification/Test6_mobilenet/model_v2.py), thanks! In the pre-training stage, I trained MobileNetv2 on the **Caltech256** dataset for **300** epochs to get a well-generalized backbone. The pre-training results are shown below：
 
 |Network|Dataset|Classes num|Top-1 Accuracy|
 |:-----:|:-----:|:-----:|:-----:|
@@ -184,9 +184,13 @@ In the previous experiments, the $\alpha$ equals 0.3, but is this the best setti
 
 |Network|Dataset|Top-1 Accuracy|$\alpha$|
 |:-----:|:-----:|:-----:|:-----:|
+|MobileNets-M|Caltech-101|85.1%|1|
+|MobileNets-M|Caltech-101|85.5%|0.7|
 |MobileNets-M|Caltech-101|86.2%|0.5|
 |MobileNets-M|Caltech-101|**87.6%**|0.3|
 |MobileNets-M|Caltech-101|86.2%|0|
+
+From the results, 0.3 is the ideal setting of $\alpha$ in this project, and the Top-1 accuracy is 87.6% which is the best performance within these results. Another interesting thing is that, when the $\alpha$ equaled 1, which means the hard loss was completely ignored, the network can still reach 85.1% Top-1 accuracy which is even **higher than the fine-tuned teacher network (84.4%)**. But why? IDK :confused:.
 
 
 ## Acknowledgment

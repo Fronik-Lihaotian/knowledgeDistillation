@@ -142,7 +142,7 @@ def main(args):
     # student stage
     if args.fine_tuning:
         student_logger = get_logger(
-            './logfile/explog_student_network_{}epochs_on_{}_alpha=0.log'.format(args.s_epochs, args.dataset))
+            './logfile/explog_student_network_{}epochs_on_{}_alpha=0.7.log'.format(args.s_epochs, args.dataset))
         student_model = models.Student(num_class=args.num_classes_s).to(device)
         kd_loss = nn.KLDivLoss(reduction='batchmean')
         hard_loss = nn.CrossEntropyLoss()
@@ -234,9 +234,9 @@ if __name__ == '__main__':
     parser.add_argument('--dataset', type=str, default='caltech-101')
     parser.add_argument('--pretrained_teacher_path', type=str, default='./teacher_weights/MobileNetv2.pth')
     parser.add_argument('--fine_tuned_teacher_path', type=str, default='./teacher_weights/MobileNetv2_fine_tuned.pth')
-    parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets_alpha=0.pth')
+    parser.add_argument('--student_path', type=str, default='./student_weights/MobileNets_alpha=0.7.pth')
     parser.add_argument('--kl_tmp', type=float, default=3.)
-    parser.add_argument('--kl_alpha', type=float, default=0)
+    parser.add_argument('--kl_alpha', type=float, default=0.7)
     parser.add_argument('--fine_tuning', type=bool, default=True)
     parser.add_argument('--lr', type=float, default=0.0002)
 
