@@ -190,7 +190,7 @@ In the previous experiments, the $\alpha$ equals 0.3, but is this the best setti
 |MobileNets-M|Caltech-101|**87.6%**|0.3|
 |MobileNets-M|Caltech-101|86.2%|0|
 
-From the results, 0.3 is the ideal setting of $\alpha$ in this project, and the Top-1 accuracy is 87.6% which is the best performance within these results. Another interesting thing is that, when the $\alpha$ equaled 1, which means the hard loss was completely ignored, the network can still reach 85.1% Top-1 accuracy which is even **higher than the fine-tuned teacher network (84.4%)**. But why? IDK :confused:.
+From the results, 0.3 is the ideal setting of $\alpha$ in this project, and the Top-1 accuracy is 87.6% which is the best performance within these results. Another interesting thing is that, when the $\alpha$ equaled 1, which means the hard loss was completely ignored, the network can still reach 85.1% Top-1 accuracy which is even **higher than the fine-tuned teacher network (84.4%)**. But why? IDK :confused: yet :laughing:.
 
 
 ## Acknowledgment
