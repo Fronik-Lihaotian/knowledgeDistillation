@@ -147,7 +147,21 @@ From the results, applying the cosine LR scheduler cannot improve the performanc
 
 ### Influence of Data Augmentation
 
-TBD
+Here, I made the experiments to discuss the performance impact of data augmentations, I fixed the value of the hyperparameter as:
+
+- Temperature: 3.0
+- $\alpha$: 0.3
+- epochs: 120
+- Lr: 0.0002
+
+The results are shown in the table below:
+
+|Network|Random ResizedCrop|Random HorizontalFlip|RandAugment|Random Erasing|acc|
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+|MobileNets-M|&#10003;|&#10003;|&#10003;|&#10003;|**87.6%**|
+|MobileNets-M|&#10003;|&#10003;|&#10008;|&#10003;|85.4%|
+
+
 
 ### $\alpha$ & temperature 
 
