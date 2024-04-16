@@ -156,11 +156,12 @@ Here, I made the experiments to discuss the performance impact of data augmentat
 
 The results are shown in the table below:
 
-|Network|Random ResizedCrop|Random HorizontalFlip|RandAugment|Random Erasing|acc|
+|Network|Random ResizedCrop|Random HorizontalFlip|Rand Augment|Random Erasing|acc|
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
 |MobileNets-M|&#10003;|&#10003;|&#10003;|&#10003;|**87.6%**|
 |MobileNets-M|&#10003;|&#10003;|&#10008;|&#10003;|85.4%|
-
+|MobileNets-M|&#10003;|&#10003;|&#10003;|&#10008;|86.8%|
+|MobileNets-M|&#10003;|&#10003;|&#10008;|&#10008;|87.4%|
 
 
 ### $\alpha$ & temperature 
