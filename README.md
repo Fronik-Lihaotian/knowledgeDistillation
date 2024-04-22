@@ -163,6 +163,7 @@ The results are shown in the table below:
 |MobileNets-M|&#10003;|&#10003;|&#10003;|&#10008;|86.8%|
 |MobileNets-M|&#10003;|&#10003;|&#10008;|&#10008;|87.4%|
 
+From the results, it's clear that strong data augmentation can improve network performance, however, the network seems to perform better without Random HorizontalFlip and Rand Erasing. 
 
 ### $\alpha$ & temperature 
 
