@@ -30,14 +30,14 @@ Data Augmentation:
 
 I use modified MobileNetv2 with the innovative inverted residual block (called overlapping group convolution 
 block) as the student network, which is designed based on my personal MSc final project at the University of 
-Birmingham. The entire stage will be: 
+Birmingham, you can find the code and the report from this [repository](https://github.com/Fronik-Lihaotian/Channel-overlapping-group-convolution). The entire stage will be: 
 
 1. Fine-tuning the teacher network based on the backbone gained from the above stage. 
 2. Training student model with knowledge distillation. 
 
 ### Fine-tuning teacher model
 
-I loaded the backbone model from the path `./teacher_weights/`MobileNetv2.pth` and froze the weights 
+I loaded the backbone model from the path `./teacher_weights/MobileNetv2.pth` and froze the weights 
 except the classifier layer. Then fine-tune the teacher network on **Caltech-101**, which is our domain 
 dataset in this project, for **30 (or 60) epochs** to obtain the teacher network. The fine-tuning results are 
 shown below:
@@ -63,7 +63,7 @@ Data Augmentation:
 
 ### Training student network
 
-Here I use the medium size of modified MobileNetV2, called MobileNets-M, as the student network, with the `expansion_rate` = 4`. Kullback-Leibler divergence is applied to provide distillation loss, the loss function can be described as:
+Here I use the medium size of modified MobileNetV2, called MobileNets-M, as the student network, with the `expansion_rate=4`. Kullback-Leibler divergence is applied to provide distillation loss, the loss function can be described as:
 
 $$D_{KL}(P_t||P_s) = -\sum (P_t\log P_s-P_t\log P_t),$$
 
@@ -206,7 +206,7 @@ In the previous experiments, the $\alpha$ equals 0.3, but is this the best setti
 |MobileNets-M|Caltech-101|**87.6%**|0.3|
 |MobileNets-M|Caltech-101|86.2%|0|
 
-From the results, 0.3 is the ideal setting of $\alpha$ in this project, and the Top-1 accuracy is 87.6% which is the best performance within these results. Another interesting thing is that, when the $\alpha$ equaled 1, which means the hard loss was completely ignored, the network can still reach 85.1% Top-1 accuracy which is even **higher than the fine-tuned teacher network (84.4%)**. But why? IDK :confused: yet :laughing:.
+From the results, 0.3 is the ideal setting of $\alpha$ in this project, and the Top-1 accuracy is 87.6% which is the best performance within these results. Another interesting thing is that, when the $\alpha$ equaled 1, which means the hard loss was completely ignored, the network can still reach 85.1% Top-1 accuracy which is even **higher than the fine-tuned teacher network (84.4%)**. But why? IDK :confused: yet. :laughing:
 
 
 ## Acknowledgment
